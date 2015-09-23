@@ -15,7 +15,9 @@ class TestDispatcher(unittest.TestCase):
         pass
 
     def test_add(self):
+        from justrpc import MethodAlreadyRegisted
         def Add(x, y):
             pass
         self.dis.register(Add)
         self.assertIn('Add', self.dis.funcs)
+        self.assertRaises(MethodAlreadyRegisted, self.dis.register, Add)
