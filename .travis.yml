@@ -5,6 +5,9 @@ python:
     - "3.2"
     - "3.3"
     - "nightly"
+install:
+    - python setup.py develop
+    - pip install tox
 
 script: tox
 matrix:
