@@ -3,15 +3,19 @@
 
 import unittest
 
-class TestJustRPCServer(unittest.TestCase):
+class TestDispatcher(unittest.TestCase):
 
     """Test case docstring."""
 
     def setUp(self):
-        pass
+        from justrpc import Dispatcher
+        self.dis = Dispatcher()
 
     def tearDown(self):
         pass
 
-    def test_name(self):
-        pass
+    def test_add(self):
+        def Add(x, y):
+            pass
+        self.dis.register(Add)
+        self.assertIn('Add', self.dis.funcs)
