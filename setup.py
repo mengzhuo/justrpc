@@ -9,6 +9,7 @@ except ImportError:
 setup(name='justrpc',
       version='0.1',
       description="Fast and simple JSON RPC v1.0 for TCP connection",
+      install_requires=['gevent', 'python-cjson'],
       long_description="",
       author="Meng Zhuo",
       author_email="mengzhuo1203+justrpc@gmail.com",
