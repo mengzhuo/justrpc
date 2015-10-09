@@ -7,7 +7,7 @@ except ImportError:
     from distutils.core import setup
 
 setup(name='justrpc',
-      version='0.1',
+      version='0.2',
       description="Fast and simple JSON RPC v1.0 for TCP connection",
       install_requires=['gevent', 'python-cjson'],
       long_description="",
