@@ -15,13 +15,19 @@ setup(name='justrpc',
       author_email="mengzhuo1203+justrpc@gmail.com",
       url="http://github.com/mengzhuo/justrpc",
       py_modules=['justrpc'],
-      scripts=['justrpc.py'],
       license='GPL2',
       platforms='any',
-      classifiers=['Development Status :: 1 - Alpha',
+      classifiers=['Development Status :: 3 - Alpha',
                     'Intended Audience :: Developers',
                     'License :: OSI Approved :: MIT License',
                     'Programming Language :: Python :: 2.6',
                     'Programming Language :: Python :: 2.7',
           ],
+
+        entry_points={
+              'console_scripts': [
+                  'jrpc = justrpc:_main'
+              ]
+        }
+
       )

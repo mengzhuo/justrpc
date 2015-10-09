@@ -137,23 +137,27 @@ def new_server(dispatcher, address, port, **kwargs):
     s = server.StreamServer((address, int(port)), dispatcher, **kwargs)
     return s
 
+def _main():
 
-if __name__ == '__main__':
-    
     import argparse
     parser = argparse.ArgumentParser()
+    add = parser.add_argument
     [parser.add_argument(i[0], default=i[1], help=i[2])
             for i in [('-b', '127.0.0.1:8080', 'endpoint that server bindto'),
                      ('-m', 'time', 'register module'),
                      ('-c', '', 'connect endpoint'),
                      ('-i', '', 'invoke method name'),
                      ('-a', '', 'args')]]
+
     logging.basicConfig(level=logging.INFO)
     args = parser.parse_args()
     if not args.c:
         register_module(args.m)
         rpc = new_server(default_dispatcher, *args.b.split(":"))
         rpc.serve_forever()
-    
-    client = Client(tuple(args.c.split(":")))
-    print client(args.i, *args.a.split(','))
+    else:
+        client = Client(tuple(args.c.split(":")))
+        logger.info(client(args.i, *args.a.split(',')))
+
+if __name__ == '__main__':
+    _main()
