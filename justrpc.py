@@ -5,17 +5,18 @@
 Simple and yet high performance JSON RPC v1.0 server/client
 """
 
-from gevent import monkey, server, socket as gsocket
+from gevent import monkey, server, socket as gsocket, Timeout
 monkey.patch_all()
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("RPC")
 import cjson
 import socket
 
 class RPCException(Exception): pass
 class MethodAlreadyRegisted(RPCException): pass
 class MethodNotRegistered(RPCException): pass
+class RemoteTimeout(RPCException): pass
 
 class Dispatcher(object):
     
@@ -103,14 +104,16 @@ class Client(object):
     """
     Client 
     """
-    def __init__(self, dest):
+    def __init__(self, dest, timeout=30, **kwargs):
         """
         :params dest:
+        :params timeout:
         """
         self.dest = dest
-        self.sock = gsocket.socket()
+        self.sock = gsocket.socket(**kwargs)
         self.rfile = self.sock.makefile("rb", -1)
         self.sock.connect(dest)
+        self.timeout = timeout
         self.id = 0
 
     def __call__(self, method, *args):
@@ -119,8 +122,9 @@ class Client(object):
                    id=self.id,
                    params=args)
 
-        self.sock.send(cjson.encode(msg)+'\n')
-        rsp = cjson.decode(self.rfile.readline())
+        with Timeout(self.timeout, RemoteTimeout):
+            self.sock.send(cjson.encode(msg)+'\n')
+            rsp = cjson.decode(self.rfile.readline())
 
         if rsp['error']:
             raise RPCException(rsp['error'])
@@ -142,22 +146,39 @@ def _main():
     import argparse
     parser = argparse.ArgumentParser()
     add = parser.add_argument
+    add('-d', '--debug', default=False, action='store_true')
+    add('--timeout', default=30, type=int, metavar="seconds")
+    add('address')
+    add('method', nargs="?")
+    add('params', nargs="*")
+    add('-m', default='', metavar='register module')
+    """
     [parser.add_argument(i[0], default=i[1], help=i[2])
             for i in [('-b', '127.0.0.1:8080', 'endpoint that server bindto'),
                      ('-m', 'time', 'register module'),
                      ('-c', '', 'connect endpoint'),
                      ('-i', '', 'invoke method name'),
                      ('-a', '', 'args')]]
-
-    logging.basicConfig(level=logging.INFO)
+    """
     args = parser.parse_args()
-    if not args.c:
+    if not args.address:
+        parser.print_help()
+        exit()
+
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO)
+
+    if args.m:
         register_module(args.m)
-        rpc = new_server(default_dispatcher, *args.b.split(":"))
+        rpc = new_server(default_dispatcher, *args.address.split(":"))
         rpc.serve_forever()
     else:
-        client = Client(tuple(args.c.split(":")))
-        logger.info(client(args.i, *args.a.split(',')))
+        client = Client(tuple(args.address.split(":")), args.timeout)
+        params = args.params
+        for i,p in enumerate(params):
+            if p.isdigit():
+                params[i] = int(p)
+
+        logger.info(client(args.method, *args.params))
 
 if __name__ == '__main__':
     _main()
