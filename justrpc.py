@@ -152,6 +152,8 @@ def _main():
     add('method', nargs="?")
     add('params', nargs="*")
     add('-m', default='', metavar='register module')
+    add('-j', '--json', action="store_true", default=False)
+    add('-l', '--list', action="store_true", default=False)
     """
     [parser.add_argument(i[0], default=i[1], help=i[2])
             for i in [('-b', '127.0.0.1:8080', 'endpoint that server bindto'),
@@ -174,11 +176,12 @@ def _main():
     else:
         client = Client(tuple(args.address.split(":")), args.timeout)
         params = args.params
-        for i,p in enumerate(params):
-            if p.isdigit():
-                params[i] = int(p)
+        if args.list:
+            params = [params]
+        elif args.json and len(params) == 1:
+            params = cjson.decode(params[0])
 
-        logger.info(client(args.method, *args.params))
+        logger.info(client(args.method, *params))
 
 if __name__ == '__main__':
     _main()
